@@ -37,7 +37,7 @@ const ETNIA_VIAJES_SEARCH = 'Etnia Viajes Córdoba Argentina';
 
 /**
  * Hook to fetch reviews from Google Places API (New) for Etnia Viajes
- * Uses Place.searchByText to find the place, then fetchFields for details
+ * Uses Place.searchByText to find the place with all details
  * @param maxReviews - Maximum number of reviews to return (default: 5, max from API is 5)
  */
 export function useGooglePlacesReviews(
@@ -96,7 +96,7 @@ export function useGooglePlacesReviews(
             profile_photo_url: review.authorAttribution?.photoURI,
             rating: review.rating || 0,
             relative_time_description: review.relativePublishTimeDescription || '',
-            text: review.text?.text || '',
+            text: String(review.text || ''),
             time: new Date(review.publishTime).getTime() / 1000,
           }));
 
