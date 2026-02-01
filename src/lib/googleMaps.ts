@@ -1,15 +1,16 @@
 /**
- * Google Maps Script Loader
- * Loads the Google Maps JavaScript API with Places library
+ * Google Maps Script Loader (New Places API)
+ * Loads the Google Maps JavaScript API with Places library using dynamic import
  */
 
 let isLoading = false;
 let isLoaded = false;
 let loadPromise: Promise<void> | null = null;
+let placesLibrary: google.maps.PlacesLibrary | null = null;
 
 export function loadGoogleMapsScript(): Promise<void> {
   // If already loaded, return immediately
-  if (isLoaded && window.google?.maps?.places) {
+  if (isLoaded && placesLibrary) {
     return Promise.resolve();
   }
 
@@ -29,20 +30,26 @@ export function loadGoogleMapsScript(): Promise<void> {
   loadPromise = new Promise((resolve, reject) => {
     // Check if script already exists
     if (document.querySelector('script[src*="maps.googleapis.com"]')) {
-      // Wait for it to load
-      const checkLoaded = setInterval(() => {
-        if (window.google?.maps?.places) {
+      // Wait for it to load and import library
+      const checkLoaded = setInterval(async () => {
+        if (window.google?.maps?.importLibrary) {
           clearInterval(checkLoaded);
-          isLoaded = true;
-          isLoading = false;
-          resolve();
+          try {
+            placesLibrary = await window.google.maps.importLibrary('places') as google.maps.PlacesLibrary;
+            isLoaded = true;
+            isLoading = false;
+            resolve();
+          } catch (err) {
+            isLoading = false;
+            reject(err);
+          }
         }
       }, 100);
       
       // Timeout after 10 seconds
       setTimeout(() => {
         clearInterval(checkLoaded);
-        if (!window.google?.maps?.places) {
+        if (!isLoaded) {
           isLoading = false;
           reject(new Error('Google Maps script load timeout'));
         }
@@ -51,16 +58,23 @@ export function loadGoogleMapsScript(): Promise<void> {
       return;
     }
 
-    // Create and append script
+    // Create and append script with async loading
     const script = document.createElement('script');
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&loading=async`;
     script.async = true;
     script.defer = true;
     
-    script.onload = () => {
-      isLoaded = true;
-      isLoading = false;
-      resolve();
+    script.onload = async () => {
+      try {
+        // Import the places library using dynamic import
+        placesLibrary = await window.google.maps.importLibrary('places') as google.maps.PlacesLibrary;
+        isLoaded = true;
+        isLoading = false;
+        resolve();
+      } catch (err) {
+        isLoading = false;
+        reject(err);
+      }
     };
     
     script.onerror = () => {
@@ -74,63 +88,66 @@ export function loadGoogleMapsScript(): Promise<void> {
   return loadPromise;
 }
 
+// Get the Place class from loaded library
+export function getPlaceClass(): typeof google.maps.places.Place | null {
+  return placesLibrary?.Place || null;
+}
+
 // Type declarations for Google Maps
 declare global {
   interface Window {
-    google: {
-      maps: {
-        places: {
-          PlacesService: new (attrContainer: HTMLElement) => google.maps.places.PlacesService;
-          PlacesServiceStatus: {
-            OK: string;
-            ZERO_RESULTS: string;
-          };
-        };
-      };
-    };
+    google: typeof google;
   }
 }
 
-// Google Maps Places types
+// Extend Google Maps types for the new Places API
+declare namespace google.maps {
+  function importLibrary(name: 'places'): Promise<PlacesLibrary>;
+  
+  interface PlacesLibrary {
+    Place: typeof google.maps.places.Place;
+  }
+}
+
 declare namespace google.maps.places {
-  interface PlacesService {
-    findPlaceFromQuery(
-      request: FindPlaceFromQueryRequest,
-      callback: (results: PlaceResult[] | null, status: string) => void
-    ): void;
-    getDetails(
-      request: { placeId: string; fields: string[] },
-      callback: (result: PlaceResult | null, status: string) => void
-    ): void;
+  class Place {
+    constructor(options: { id: string });
+    
+    static searchByText(request: SearchByTextRequest): Promise<{ places: Place[] }>;
+    
+    fetchFields(options: { fields: string[] }): Promise<Place>;
+    
+    id: string;
+    displayName: string | null;
+    photos: Photo[] | null;
+    rating: number | null;
+    userRatingCount: number | null;
+    reviews: Review[] | null;
+    googleMapsURI: string | null;
   }
-
-  interface FindPlaceFromQueryRequest {
-    query: string;
+  
+  interface SearchByTextRequest {
+    textQuery: string;
     fields: string[];
+    maxResultCount?: number;
   }
-
-  interface PlaceResult {
-    name?: string;
-    place_id?: string;
-    photos?: PlacePhoto[];
-    rating?: number;
-    user_ratings_total?: number;
-    reviews?: PlaceReview[];
-    url?: string;
+  
+  interface Photo {
+    getURI(options?: { maxWidth?: number; maxHeight?: number }): string;
+    authorAttributions: AuthorAttribution[];
   }
-
-  interface PlaceReview {
-    author_name: string;
-    author_url?: string;
-    profile_photo_url?: string;
+  
+  interface AuthorAttribution {
+    displayName: string;
+    uri: string;
+    photoURI: string;
+  }
+  
+  interface Review {
+    authorAttribution: AuthorAttribution;
     rating: number;
-    relative_time_description: string;
-    text: string;
-    time: number;
-  }
-
-  interface PlacePhoto {
-    getUrl(opts: { maxWidth: number; maxHeight?: number }): string;
-    html_attributions: string[];
+    relativePublishTimeDescription: string;
+    text: { text: string } | null;
+    publishTime: string;
   }
 }
