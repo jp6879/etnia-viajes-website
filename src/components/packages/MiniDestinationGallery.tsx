@@ -6,13 +6,18 @@ import { useDestinationImages } from '@/hooks/useDestinationImages';
 interface MiniDestinationGalleryProps {
   destinationName: string;
   maxImages?: number;
+  /** Término de búsqueda personalizado (si no se especifica, usa destinationName) */
+  searchQuery?: string;
 }
 
 export function MiniDestinationGallery({ 
   destinationName, 
-  maxImages = 10
+  maxImages = 10,
+  searchQuery
 }: MiniDestinationGalleryProps) {
-  const { images, isLoading, error } = useDestinationImages(destinationName, maxImages);
+  // Usa searchQuery si está definido, sino usa destinationName
+  const effectiveSearchTerm = searchQuery || destinationName;
+  const { images, isLoading, error } = useDestinationImages(effectiveSearchTerm, maxImages);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 

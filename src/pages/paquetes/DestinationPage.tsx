@@ -36,6 +36,7 @@ interface PackageFromDB {
   services: any;
   legal_text: string | null;
   payment_methods: string | null;
+  destination_image_query: string | null;
   currency: string | null;
   is_active: boolean;
 }
@@ -52,8 +53,8 @@ function transformPackage(pkg: PackageFromDB): PackageData {
     title: pkg.title || "Paquete sin título",
     dates: pkg.dates || "Fechas a confirmar",
     image: pkg.image || undefined,
-    hotel: pkg.hotel || "Hotel a confirmar",
-    hotelStars: pkg.hotel_stars || 5,
+    hotel: pkg.hotel || undefined,
+    hotelStars: pkg.hotel ? (pkg.hotel_stars || 5) : 5,
     nights: pkg.nights || undefined,
     roomType: pkg.room_type || "Habitación estándar",
     regime: pkg.regime || "Todo Incluido",
@@ -89,6 +90,7 @@ function transformPackage(pkg: PackageFromDB): PackageData {
     legalText: pkg.legal_text || undefined,
     paymentMethods: pkg.payment_methods || undefined,
     currency: (pkg.currency as 'USD' | 'ARS') || 'USD',
+    destinationImageQuery: pkg.destination_image_query || undefined,
   };
 }
 

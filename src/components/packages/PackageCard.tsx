@@ -72,7 +72,7 @@ export interface PackageData {
   title: string;
   dates: string;
   image?: string;
-  hotel: string;
+  hotel?: string;
   hotelStars: number;
   nights?: number;
   roomType: string;
@@ -91,6 +91,8 @@ export interface PackageData {
   paymentMethods?: string;
   /** Moneda del paquete (USD o ARS) */
   currency?: 'USD' | 'ARS';
+  /** Término de búsqueda personalizado para imágenes del destino */
+  destinationImageQuery?: string;
 }
 
 // ============================================
@@ -163,12 +165,14 @@ export function PackageCard({
 
       {/* Feature Icons Strip */}
       <div className="flex flex-wrap justify-center gap-6 p-4 bg-secondary/30 border-b border-border">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <MapPin className="h-4 w-4 text-primary" />
+        {paquete.hotel && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <MapPin className="h-4 w-4 text-primary" />
+            </div>
+            <span>Alojamiento</span>
           </div>
-          <span>Alojamiento</span>
-        </div>
+        )}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
             <Plane className="h-4 w-4 text-primary" />
@@ -195,56 +199,72 @@ export function PackageCard({
       <div className="p-6 md:p-8 grid lg:grid-cols-2 gap-8">
         {/* Columna izquierda: Alojamiento + Traslados + Precios */}
         <div>
-          {/* Alojamiento */}
-          <h4 className="font-display text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-primary" /> Alojamiento
-          </h4>
-          <div className="grid md:grid-cols-2 gap-4">
-            {/* Info del Hotel */}
-            <div className="bg-secondary/50 rounded-xl p-6 border border-border">
-              <p className="font-semibold text-foreground text-lg">{paquete.hotel}</p>
-              <div className="flex items-center gap-3 my-2">
-                <div className="flex items-center gap-1">
-                  {paquete.hotelStars === 0 ? (
-                    <span className="text-sm font-medium text-muted-foreground">Hostel 🏨</span>
-                  ) : paquete.hotelStars === 1 ? (
-                    <span className="text-sm font-medium text-muted-foreground">Departamento 🏢</span>
-                  ) : (
-                    <>
-                      {[...Array(paquete.hotelStars)].map((_, i) => (
-                        <span key={i} className="text-accent">★</span>
-                      ))}
-                    </>
-                  )}
+          {/* Alojamiento - Solo mostrar si hay hotel */}
+          {paquete.hotel && (
+            <>
+              <h4 className="font-display text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-primary" /> Alojamiento
+              </h4>
+              <div className="grid md:grid-cols-2 gap-4">
+                {/* Info del Hotel */}
+                <div className="bg-secondary/50 rounded-xl p-6 border border-border">
+                  <p className="font-semibold text-foreground text-lg">{paquete.hotel}</p>
+                  <div className="flex items-center gap-3 my-2">
+                    <div className="flex items-center gap-1">
+                      {paquete.hotelStars === 0 ? (
+                        <span className="text-sm font-medium text-muted-foreground">Hostel 🏨</span>
+                      ) : paquete.hotelStars === 1 ? (
+                        <span className="text-sm font-medium text-muted-foreground">Departamento 🏢</span>
+                      ) : (
+                        <>
+                          {[...Array(paquete.hotelStars)].map((_, i) => (
+                            <span key={i} className="text-accent">★</span>
+                          ))}
+                        </>
+                      )}
+                    </div>
+                    {paquete.nights && (
+                      <span className="flex items-center gap-1 text-sm font-medium text-primary">
+                        <Moon className="h-4 w-4" /> {paquete.nights} noches
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-muted-foreground mb-2">
+                    <strong>Habitación:</strong> {paquete.roomType}
+                  </p>
+                  <p className="text-muted-foreground">
+                    <strong>Régimen:</strong> {paquete.regime}
+                  </p>
                 </div>
-                {paquete.nights && (
-                  <span className="flex items-center gap-1 text-sm font-medium text-primary">
-                    <Moon className="h-4 w-4" /> {paquete.nights} noches
-                  </span>
-                )}
+                
+                {/* Mapa de ubicación */}
+                <div className="bg-secondary/50 rounded-xl overflow-hidden min-h-[200px] border border-border">
+                  <iframe
+                    title={`Ubicación de ${paquete.hotel}`}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0, minHeight: '200px' }}
+                    loading="lazy"
+                    allowFullScreen
+                    referrerPolicy="no-referrer-when-downgrade"
+                    src={`https://www.google.com/maps/embed/v1/place?key=${mapsEmbedKey}&q=${encodeURIComponent(paquete.hotelLocation || paquete.hotel)}`}
+                  />
+                </div>
               </div>
-              <p className="text-muted-foreground mb-2">
-                <strong>Habitación:</strong> {paquete.roomType}
-              </p>
-              <p className="text-muted-foreground">
-                <strong>Régimen:</strong> {paquete.regime}
-              </p>
-            </div>
-            
-            {/* Mapa de ubicación */}
-            <div className="bg-secondary/50 rounded-xl overflow-hidden min-h-[200px] border border-border">
-              <iframe
-                title={`Ubicación de ${paquete.hotel}`}
-                width="100%"
-                height="100%"
-                style={{ border: 0, minHeight: '200px' }}
-                loading="lazy"
-                allowFullScreen
-                referrerPolicy="no-referrer-when-downgrade"
-                src={`https://www.google.com/maps/embed/v1/place?key=${mapsEmbedKey}&q=${encodeURIComponent(paquete.hotelLocation || paquete.hotel)}`}
-              />
-            </div>
-          </div>
+
+              {/* Hotel Gallery - Below Map */}
+              <div className="mt-6">
+                <h4 className="text-sm font-semibold text-muted-foreground mb-2 flex items-center gap-1">
+                  Fotos del Hotel
+                </h4>
+                <HotelGallery 
+                  hotelName={paquete.hotel} 
+                  hotelLocation={paquete.hotelLocation}
+                  maxImages={5}
+                />
+              </div>
+            </>
+          )}
 
           {/* Traslados (si aplica) */}
           {paquete.transfer?.included && (
@@ -260,17 +280,6 @@ export function PackageCard({
             </>
           )}
 
-          {/* Hotel Gallery - Below Traslados */}
-          <div className="mt-6">
-            <h4 className="text-sm font-semibold text-muted-foreground mb-2 flex items-center gap-1">
-              Fotos del Hotel
-            </h4>
-            <HotelGallery 
-              hotelName={paquete.hotel} 
-              hotelLocation={paquete.hotelLocation}
-              maxImages={5}
-            />
-          </div>
 
           {/* Precios por tipo */}
           <h4 className="font-display text-xl font-semibold text-foreground mt-8 mb-4 flex items-center gap-2">
@@ -488,6 +497,7 @@ export function PackageCard({
               <MiniDestinationGallery 
                 destinationName={destinationName} 
                 maxImages={5}
+                searchQuery={paquete.destinationImageQuery}
               />
             </div>
           )}
