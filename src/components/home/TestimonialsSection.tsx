@@ -1,113 +1,85 @@
-import { Star, MapPin, ExternalLink, Loader2 } from "lucide-react";
-import { ScrollAnimation, StaggerContainer, StaggerItem } from "@/components/ui/scroll-animation";
+import { Star, ExternalLink, Loader2, Camera, Quote } from "lucide-react";
+import { ScrollAnimation } from "@/components/ui/scroll-animation";
 import { motion } from "framer-motion";
 import { useGooglePlacesReviews, GoogleReview } from "@/hooks/useGooglePlacesReviews";
+import { useGooglePlacesPhotos, PlacePhoto } from "@/hooks/useGooglePlacesPhotos";
 
-// Fallback reviews in case API fails
-const fallbackTestimonials = [
-  {
-    author_name: "Karina Perez",
-    text: "Excelente atención por parte de Agos! Nos asesoraron y acompañaron en toda la planificación del viaje y luego mientras estuvimos allá. Excelenta la atención, super comendable, atenta a cada detalle y necesidad tanto para los requisitos de ingresos como atención en temas relacionados en el lugar. 100% recomendado",
-    rating: 5,
-    relative_time_description: "hace 2 meses",
-    time: Date.now() / 1000,
-  },
-  {
-    author_name: "Camilo Perona",
-    text: "¡Qué lindo viaje nos armaron! Fuimos al Caribe y todo salió perfecto: los hoteles, las excursiones y hasta los transfers. Son dos chicas re copadas que realmente se meten en cada detalle y se nota: nos sentimos acompañados todo el tiempo y sin sorpresas en el precio.",
-    rating: 5,
-    relative_time_description: "hace 3 meses",
-    time: Date.now() / 1000,
-  },
-  {
-    author_name: "Eliana Gauna",
-    text: "Excelente trabajo del equipo de etnia, desde el armado del paquete según nuestras necesidades, hasta el acompañamiento y la asistencia durante todo el viaje. Gracias infinitas!",
-    rating: 5,
-    relative_time_description: "hace 4 meses",
-    time: Date.now() / 1000,
-  },
-  {
-    author_name: "Lorena Nuñez",
-    text: "Acompañamiento de parte de agostina y equipo en todo momento. Ayuda en la dudas y resolución. Verificar si llegaste bien o tuviste alguna situación con el vuelo y cuando te hospedas, es algo que no me había sucedido con otras agencias.",
-    rating: 5,
-    relative_time_description: "hace 5 meses",
-    time: Date.now() / 1000,
-  },
-];
+const GOOGLE_MAPS_URL = "https://maps.app.goo.gl/Nm3DZisCQxksgRag9";
 
-interface TestimonialCardProps {
-  review: GoogleReview | typeof fallbackTestimonials[0];
-  index: number;
-}
-
-const TestimonialCard = ({ review, index }: TestimonialCardProps) => {
-  // Get initials from author name
-  const initials = review.author_name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-
-  // Get profile photo if available
-  const profilePhoto = 'profile_photo_url' in review ? review.profile_photo_url : null;
-
+// Review Card Component
+const ReviewCard = ({ review, variant = "default" }: { review: GoogleReview; variant?: "default" | "featured" }) => {
+  const isFeatured = variant === "featured";
+  
   return (
     <motion.div 
-      className="bg-card rounded-xl p-6 shadow-sm border border-border h-full flex flex-col"
+      className={`
+        relative bg-gradient-to-br from-stone-50 to-stone-100 rounded-2xl p-6 shadow-sm 
+        border border-stone-200/50 flex flex-col
+        ${isFeatured ? 'row-span-2' : ''}
+      `}
       whileHover={{ 
-        y: -8, 
-        boxShadow: "0 20px 40px -15px rgba(0, 0, 0, 0.15)",
-        borderColor: "hsl(var(--primary) / 0.3)"
+        y: -4, 
+        boxShadow: "0 20px 40px -15px rgba(0, 0, 0, 0.12)",
       }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
     >
-      <motion.div 
-        className="flex gap-1 mb-4"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        transition={{ staggerChildren: 0.1 }}
-      >
+      {/* Quote Icon */}
+      <Quote className="absolute top-4 right-4 h-8 w-8 text-primary/10" />
+      
+      {/* Stars */}
+      <div className="flex gap-0.5 mb-4">
         {[...Array(review.rating)].map((_, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, scale: 0 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ delay: i * 0.1, type: "spring", stiffness: 500 }}
-          >
-            <Star className="h-4 w-4 fill-sunset text-sunset" />
-          </motion.div>
+          <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
         ))}
-      </motion.div>
-      <p className="text-foreground mb-6 leading-relaxed italic text-sm flex-grow">
+      </div>
+      
+      {/* Review Text */}
+      <p className={`text-stone-700 leading-relaxed flex-grow ${isFeatured ? 'text-base' : 'text-sm'}`}>
         "{review.text}"
       </p>
-      <div className="flex items-center gap-3">
-        {profilePhoto ? (
-          <motion.img
-            src={profilePhoto}
-            alt={review.author_name}
-            className="w-10 h-10 rounded-full object-cover"
-            whileHover={{ scale: 1.1 }}
-            transition={{ type: "spring", stiffness: 400 }}
-            referrerPolicy="no-referrer"
-          />
-        ) : (
-          <motion.div
-            className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold"
-            whileHover={{ scale: 1.1 }}
-            transition={{ type: "spring", stiffness: 400 }}
-          >
-            {initials}
-          </motion.div>
-        )}
-        <div>
-          <p className="font-semibold text-foreground text-sm">{review.author_name}</p>
-          <p className="text-xs text-muted-foreground">
-            Google Maps • {review.relative_time_description}
-          </p>
-        </div>
+      
+      {/* Author */}
+      <div className="mt-4 pt-4 border-t border-stone-200/50">
+        <p className="font-semibold text-stone-800">{review.author_name}</p>
+        <p className="text-xs text-stone-500">{review.relative_time_description}</p>
       </div>
+    </motion.div>
+  );
+};
+
+// Photo Card Component
+const PhotoCard = ({ photo, size = "default" }: { photo: PlacePhoto; size?: "default" | "large" | "tall" }) => {
+  const sizeClasses = {
+    default: "",
+    large: "col-span-2 row-span-2",
+    tall: "row-span-2",
+  };
+  
+  return (
+    <motion.div
+      className={`
+        relative overflow-hidden rounded-2xl group cursor-pointer
+        ${sizeClasses[size]}
+      `}
+      whileHover={{ scale: 1.02 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+    >
+      <img
+        src={photo.url}
+        alt="Viajeros en destino"
+        className="w-full h-full object-cover min-h-[200px] transition-transform duration-500 group-hover:scale-110"
+        loading="lazy"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      
+      {/* Attribution overlay */}
+      <div className="absolute bottom-0 left-0 right-0 p-3 flex items-center gap-2 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <Camera className="h-4 w-4" />
+        <span className="text-xs font-medium truncate">{photo.authorName}</span>
+      </div>
+      
+      {/* Decorative corner */}
+      <div className="absolute top-3 left-3 w-8 h-8 border-l-2 border-t-2 border-white/40 rounded-tl-lg" />
     </motion.div>
   );
 };
@@ -117,90 +89,104 @@ export const TestimonialsSection = () => {
     reviews, 
     placeRating, 
     totalReviews, 
-    placeUrl, 
-    isLoading, 
-    error 
-  } = useGooglePlacesReviews(4);
+    isLoading: reviewsLoading, 
+  } = useGooglePlacesReviews(5);
+  
+  const { 
+    photos, 
+    isLoading: photosLoading 
+  } = useGooglePlacesPhotos(6);
 
-  // Use API reviews or fallback
-  const displayReviews = reviews.length > 0 ? reviews : fallbackTestimonials;
+  const isLoading = reviewsLoading || photosLoading;
   const displayRating = placeRating || 5.0;
-  const googleMapsUrl = placeUrl || "https://maps.app.goo.gl/jWUH1m15nppsDWTj9";
+
+  // Interleave reviews and photos for the grid
+  const gridItems: Array<{ type: 'review' | 'photo'; data: GoogleReview | PlacePhoto; variant?: string }> = [];
+  
+  const maxItems = Math.max(reviews.length, photos.length);
+  for (let i = 0; i < maxItems; i++) {
+    if (i < photos.length && i === 0) {
+      gridItems.push({ type: 'photo', data: photos[i], variant: 'large' });
+    } else if (i < reviews.length) {
+      gridItems.push({ type: 'review', data: reviews[i], variant: i === 0 ? 'featured' : 'default' });
+    }
+    if (i < photos.length && i > 0) {
+      gridItems.push({ type: 'photo', data: photos[i], variant: i === 2 ? 'tall' : 'default' });
+    }
+  }
 
   return (
-    <section className="py-20 bg-background" id="testimonios">
+    <section className="py-20 bg-gradient-to-b from-background to-stone-50" id="testimonios">
       <div className="container">
-        <ScrollAnimation variant="fadeUp" className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Lo Que Dicen Nuestros Viajeros
-          </h2>
-          <p className="text-lg text-muted-foreground">
-            Historias reales de personas que confiaron en nosotros para crear 
-            sus experiencias de viaje inolvidables.
-          </p>
-          <div className="flex items-center justify-center gap-2 mt-4 flex-wrap">
-            <div className="flex gap-0.5">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`h-5 w-5 ${
-                    i < Math.floor(displayRating) 
-                      ? "fill-sunset text-sunset" 
-                      : "fill-muted text-muted"
-                  }`}
-                />
-              ))}
-            </div>
-            <span className="font-semibold text-foreground">{displayRating.toFixed(1)}</span>
-            <span className="text-muted-foreground">
-              en Google Maps
-              {totalReviews && ` (${totalReviews} reseñas)`}
-            </span>
-            <a
-              href={googleMapsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-primary hover:underline ml-2"
-            >
-              <MapPin className="h-4 w-4" />
-              Ver en Google Maps
-              <ExternalLink className="h-3 w-3" />
-            </a>
+        {/* Header */}
+        <ScrollAnimation variant="fadeUp" className="text-center max-w-3xl mx-auto mb-14">
+          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <Star className="h-4 w-4 fill-current" />
+            {displayRating.toFixed(1)} en Google Maps
+            {totalReviews && ` • ${totalReviews} reseñas`}
           </div>
+          
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+            Historias de Viajeros <span className="text-primary">Felices</span>
+          </h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Experiencias reales de quienes confiaron en nosotros para crear 
+            sus aventuras inolvidables alrededor del mundo
+          </p>
         </ScrollAnimation>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <span className="ml-3 text-muted-foreground">Cargando reseñas...</span>
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            <span className="ml-4 text-muted-foreground text-lg">Cargando experiencias...</span>
           </div>
         ) : (
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" staggerDelay={0.12}>
-            {displayReviews.map((review, index) => (
-              <StaggerItem key={`review-${index}`}>
-                <TestimonialCard review={review} index={index} />
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
-        )}
+          <>
+            {/* Masonry Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[minmax(200px,auto)]">
+              {gridItems.map((item, index) => (
+                <motion.div
+                  key={`item-${index}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.08, duration: 0.4 }}
+                  className={
+                    item.type === 'photo' && item.variant === 'large' ? 'col-span-1 md:col-span-2 row-span-2' :
+                    item.type === 'photo' && item.variant === 'tall' ? 'row-span-2' :
+                    item.type === 'review' && item.variant === 'featured' ? 'row-span-2' :
+                    ''
+                  }
+                >
+                  {item.type === 'review' ? (
+                    <ReviewCard 
+                      review={item.data as GoogleReview} 
+                      variant={item.variant as "default" | "featured"} 
+                    />
+                  ) : (
+                    <PhotoCard 
+                      photo={item.data as PlacePhoto} 
+                      size={item.variant as "default" | "large" | "tall"} 
+                    />
+                  )}
+                </motion.div>
+              ))}
+            </div>
 
-        {error && !isLoading && reviews.length === 0 && (
-          <p className="text-center text-sm text-muted-foreground mt-4">
-            Mostrando reseñas destacadas
-          </p>
+            {/* CTA */}
+            <div className="text-center mt-12">
+              <a
+                href={GOOGLE_MAPS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 bg-primary text-primary-foreground px-6 py-3 rounded-full font-medium hover:bg-primary/90 transition-colors shadow-lg shadow-primary/25"
+              >
+                Ver todas las reseñas y fotos
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </div>
+          </>
         )}
-
-        <div className="text-center mt-10">
-          <a
-            href={googleMapsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-primary hover:underline font-medium"
-          >
-            Ver todas las reseñas en Google Maps
-            <ExternalLink className="h-4 w-4" />
-          </a>
-        </div>
       </div>
     </section>
   );

@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { loadGoogleMapsScript, getPlaceClass } from '@/lib/googleMaps';
 
+// Etnia Viajes Place ID (constant - doesn't change)
+const ETNIA_VIAJES_PLACE_ID = 'ChIJGy7adgCjMpQR9Hao6vV-igs';
+
 export interface GoogleReview {
   author_name: string;
   author_url?: string;
@@ -30,14 +33,11 @@ interface UseGooglePlacesReviewsResult {
 }
 
 // Cache to avoid duplicate API calls
-const reviewsCache: Record<string, PlaceDetails> = {};
-
-// Search query for Etnia Viajes
-const ETNIA_VIAJES_SEARCH = 'Etnia Viajes Córdoba Argentina';
+let reviewsCache: PlaceDetails | null = null;
 
 /**
  * Hook to fetch reviews from Google Places API (New) for Etnia Viajes
- * Uses Place.searchByText to find the place with all details
+ * Uses Place ID directly for reliable results
  * @param maxReviews - Maximum number of reviews to return (default: 5, max from API is 5)
  */
 export function useGooglePlacesReviews(
@@ -52,16 +52,13 @@ export function useGooglePlacesReviews(
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const cacheKey = `reviews-etnia-viajes-${maxReviews}`;
-    
     // Check cache first
-    if (reviewsCache[cacheKey]) {
-      const cached = reviewsCache[cacheKey];
-      setReviews(cached.reviews?.slice(0, maxReviews) || []);
-      setPlaceRating(cached.rating || null);
-      setTotalReviews(cached.user_ratings_total || null);
-      setPlaceName(cached.name || null);
-      setPlaceUrl(cached.url || null);
+    if (reviewsCache) {
+      setReviews(reviewsCache.reviews?.slice(0, maxReviews) || []);
+      setPlaceRating(reviewsCache.rating || null);
+      setTotalReviews(reviewsCache.user_ratings_total || null);
+      setPlaceName(reviewsCache.name || null);
+      setPlaceUrl(reviewsCache.url || null);
       setIsLoading(false);
       return;
     }
@@ -71,7 +68,6 @@ export function useGooglePlacesReviews(
       setError(null);
 
       try {
-        // Load Google Maps script and Places library
         await loadGoogleMapsScript();
         
         const Place = getPlaceClass();
@@ -79,56 +75,49 @@ export function useGooglePlacesReviews(
           throw new Error('Place class not available');
         }
 
-        // Search for Etnia Viajes using new API
-        const { places } = await Place.searchByText({
-          textQuery: ETNIA_VIAJES_SEARCH,
-          fields: ['id', 'displayName', 'rating', 'userRatingCount', 'reviews', 'googleMapsURI'],
-          maxResultCount: 1,
+        // Create Place instance with known Place ID
+        const place = new Place({ id: ETNIA_VIAJES_PLACE_ID });
+        
+        // Fetch required fields
+        await place.fetchFields({ 
+          fields: ['displayName', 'rating', 'userRatingCount', 'reviews', 'googleMapsURI'] 
         });
 
-        if (places && places.length > 0) {
-          const place = places[0];
-          
-          // Convert new review format to our format
-          const convertedReviews: GoogleReview[] = (place.reviews || []).map((review) => ({
-            author_name: review.authorAttribution?.displayName || 'Usuario',
-            author_url: review.authorAttribution?.uri,
-            profile_photo_url: review.authorAttribution?.photoURI,
-            rating: review.rating || 0,
-            relative_time_description: review.relativePublishTimeDescription || '',
-            text: String(review.text || ''),
-            time: new Date(review.publishTime).getTime() / 1000,
-          }));
+        // Convert new review format to our format
+        const convertedReviews: GoogleReview[] = (place.reviews || []).map((review) => ({
+          author_name: review.authorAttribution?.displayName || 'Usuario',
+          author_url: review.authorAttribution?.uri,
+          profile_photo_url: review.authorAttribution?.photoURI,
+          rating: review.rating || 0,
+          relative_time_description: review.relativePublishTimeDescription || '',
+          text: String(review.text || ''),
+          time: new Date(review.publishTime).getTime() / 1000,
+        }));
 
-          const placeDetails: PlaceDetails = {
-            name: place.displayName || undefined,
-            rating: place.rating || undefined,
-            user_ratings_total: place.userRatingCount || undefined,
-            reviews: convertedReviews,
-            url: place.googleMapsURI || undefined,
-          };
+        const placeDetails: PlaceDetails = {
+          name: place.displayName || undefined,
+          rating: place.rating || undefined,
+          user_ratings_total: place.userRatingCount || undefined,
+          reviews: convertedReviews,
+          url: place.googleMapsURI || undefined,
+        };
 
-          // Cache the results
-          reviewsCache[cacheKey] = placeDetails;
+        // Cache the results
+        reviewsCache = placeDetails;
 
-          // Sort reviews by rating (highest first) and date
-          const sortedReviews = [...convertedReviews]
-            .sort((a, b) => {
-              // Prioritize 5-star reviews
-              if (b.rating !== a.rating) return b.rating - a.rating;
-              // Then by most recent
-              return b.time - a.time;
-            })
-            .slice(0, maxReviews);
+        // Sort reviews by rating (highest first) and date
+        const sortedReviews = [...convertedReviews]
+          .sort((a, b) => {
+            if (b.rating !== a.rating) return b.rating - a.rating;
+            return b.time - a.time;
+          })
+          .slice(0, maxReviews);
 
-          setReviews(sortedReviews);
-          setPlaceRating(placeDetails.rating || null);
-          setTotalReviews(placeDetails.user_ratings_total || null);
-          setPlaceName(placeDetails.name || null);
-          setPlaceUrl(placeDetails.url || null);
-        } else {
-          setError('No se encontró Etnia Viajes');
-        }
+        setReviews(sortedReviews);
+        setPlaceRating(placeDetails.rating || null);
+        setTotalReviews(placeDetails.user_ratings_total || null);
+        setPlaceName(placeDetails.name || null);
+        setPlaceUrl(placeDetails.url || null);
       } catch (err) {
         console.warn('Google Places reviews fetch failed:', err);
         setError(err instanceof Error ? err.message : 'Error desconocido');
