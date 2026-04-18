@@ -3,47 +3,43 @@ import { ScrollAnimation } from "@/components/ui/scroll-animation";
 import { motion } from "framer-motion";
 import { useGooglePlacesReviews, GoogleReview } from "@/hooks/useGooglePlacesReviews";
 import { useGooglePlacesPhotos, PlacePhoto } from "@/hooks/useGooglePlacesPhotos";
+import { GlassEffect, GlassButton, GlassFilter } from "@/components/ui/liquid-glass";
 
 const GOOGLE_MAPS_URL = "https://maps.app.goo.gl/Nm3DZisCQxksgRag9";
 
 // Review Card Component
 const ReviewCard = ({ review, variant = "default" }: { review: GoogleReview; variant?: "default" | "featured" }) => {
   const isFeatured = variant === "featured";
-  
+
   return (
-    <motion.div 
-      className={`
-        relative bg-gradient-to-br from-stone-50 to-stone-100 rounded-2xl p-6 shadow-sm 
-        border border-stone-200/50 flex flex-col
-        ${isFeatured ? 'row-span-2' : ''}
-      `}
-      whileHover={{ 
-        y: -4, 
-        boxShadow: "0 20px 40px -15px rgba(0, 0, 0, 0.12)",
-      }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
-    >
-      {/* Quote Icon */}
-      <Quote className="absolute top-4 right-4 h-8 w-8 text-primary/10" />
-      
-      {/* Stars */}
-      <div className="flex gap-0.5 mb-4">
-        {[...Array(review.rating)].map((_, i) => (
-          <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
-        ))}
-      </div>
-      
-      {/* Review Text */}
-      <p className={`text-stone-700 leading-relaxed flex-grow ${isFeatured ? 'text-base' : 'text-sm'}`}>
-        "{review.text}"
-      </p>
-      
-      {/* Author */}
-      <div className="mt-4 pt-4 border-t border-stone-200/50">
-        <p className="font-semibold text-stone-800">{review.author_name}</p>
-        <p className="text-xs text-stone-500">{review.relative_time_description}</p>
-      </div>
-    </motion.div>
+    <GlassEffect className={`rounded-2xl p-6 flex flex-col h-full ${isFeatured ? 'row-span-2' : ''}`}>
+      <motion.div
+        className="relative flex flex-col h-full"
+        whileHover={{ y: -2 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      >
+        {/* Quote Icon */}
+        <Quote className="absolute top-0 right-0 h-8 w-8 text-primary/10" />
+
+        {/* Stars */}
+        <div className="flex gap-0.5 mb-4">
+          {[...Array(review.rating)].map((_, i) => (
+            <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
+          ))}
+        </div>
+
+        {/* Review Text */}
+        <p className={`text-foreground leading-relaxed flex-grow ${isFeatured ? 'text-base' : 'text-sm'}`}>
+          "{review.text}"
+        </p>
+
+        {/* Author */}
+        <div className="mt-4 pt-4 border-t border-white/20">
+          <p className="font-semibold text-foreground">{review.author_name}</p>
+          <p className="text-xs text-muted-foreground">{review.relative_time_description}</p>
+        </div>
+      </motion.div>
+    </GlassEffect>
   );
 };
 
@@ -116,8 +112,9 @@ export const TestimonialsSection = () => {
   }
 
   return (
-    <section className="py-20 bg-gradient-to-b from-background to-stone-50" id="testimonios">
-      <div className="container">
+    <section className="py-20 bg-gradient-to-b from-background to-stone-50 relative overflow-hidden" id="testimonios">
+      <GlassFilter />
+      <div className="container relative z-10">
         {/* Header */}
         <ScrollAnimation variant="fadeUp" className="text-center max-w-3xl mx-auto mb-14">
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
@@ -175,15 +172,12 @@ export const TestimonialsSection = () => {
 
             {/* CTA */}
             <div className="text-center mt-12">
-              <a
-                href={GOOGLE_MAPS_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 bg-primary text-primary-foreground px-6 py-3 rounded-full font-medium hover:bg-primary/90 transition-colors shadow-lg shadow-primary/25"
-              >
-                Ver todas las reseñas y fotos
-                <ExternalLink className="h-4 w-4" />
-              </a>
+              <GlassButton href={GOOGLE_MAPS_URL}>
+                <div className="text-white flex items-center gap-2">
+                  Ver todas las reseñas y fotos
+                  <ExternalLink className="h-4 w-4" />
+                </div>
+              </GlassButton>
             </div>
           </>
         )}

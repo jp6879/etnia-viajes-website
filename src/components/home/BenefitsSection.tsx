@@ -1,6 +1,7 @@
 import { Compass, Heart, Shield, Users, Clock, Award } from "lucide-react";
 import { ScrollAnimation, StaggerContainer, StaggerItem } from "@/components/ui/scroll-animation";
 import { motion } from "framer-motion";
+import { GlassEffect, GlassFilter } from "@/components/ui/liquid-glass";
 
 const benefits = [
   {
@@ -37,7 +38,8 @@ const benefits = [
 
 export const BenefitsSection = () => {
   return (
-    <section className="py-20 bg-secondary">
+    <section className="py-20 bg-secondary relative overflow-hidden">
+      <GlassFilter />
       <div className="container">
         <ScrollAnimation variant="fadeUp" className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -52,12 +54,8 @@ export const BenefitsSection = () => {
         <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" staggerDelay={0.08}>
           {benefits.map((benefit) => (
             <StaggerItem key={benefit.title}>
-              <motion.div 
-                className="bg-background rounded-lg p-8 shadow-sm hover:shadow-lg transition-all duration-300 h-full"
-                whileHover={{ y: -8, scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              >
-                <motion.div 
+              <GlassEffect className="rounded-2xl p-8 h-full">
+                <motion.div
                   className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-6"
                   whileHover={{ rotate: 10, scale: 1.1 }}
                   transition={{ type: "spring", stiffness: 400, damping: 10 }}
@@ -70,7 +68,7 @@ export const BenefitsSection = () => {
                 <p className="text-muted-foreground leading-relaxed">
                   {benefit.description}
                 </p>
-              </motion.div>
+              </GlassEffect>
             </StaggerItem>
           ))}
         </StaggerContainer>

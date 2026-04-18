@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
+import { GlassButton, GlassFilter } from "@/components/ui/liquid-glass";
 
 export const CTASection = () => {
   const sectionRef = useRef(null);
@@ -15,6 +16,7 @@ export const CTASection = () => {
 
   return (
     <section ref={sectionRef} className="relative py-24 overflow-hidden">
+      <GlassFilter />
       {/* Background with parallax */}
       <motion.div 
         className="absolute inset-0 bg-cover bg-center"
@@ -48,22 +50,19 @@ export const CTASection = () => {
           Contanos qué tipo de viaje soñás y te ayudamos a hacerlo realidad. 
           Consultas sin cargo ni compromiso.
         </motion.p>
-        <motion.div 
+        <motion.div
           className="flex flex-col sm:flex-row gap-4 justify-center"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7, delay: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
         >
-          <Button 
-            asChild 
-            size="lg" 
-            className="text-lg px-8 py-6 bg-white text-primary hover:bg-white/90 transition-transform hover:scale-105"
-          >
-            <a href="https://wa.me/5491124943224?text=Hola!%20Quiero%20consultar%20por%20un%20viaje" target="_blank" rel="noopener noreferrer">
+          <GlassButton href="https://wa.me/5491124943224?text=Hola!%20Quiero%20consultar%20por%20un%20viaje">
+            <div className="text-white flex items-center gap-2">
               Escribinos por WhatsApp
-            </a>
-          </Button>
+              <ArrowRight className="h-5 w-5" />
+            </div>
+          </GlassButton>
         </motion.div>
       </div>
     </section>

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
 import { ScrollAnimation, StaggerContainer, StaggerItem } from "@/components/ui/scroll-animation";
+import { GlassButton, GlassFilter } from "@/components/ui/liquid-glass";
 
 const packages = [
     {
@@ -72,9 +73,10 @@ const packages = [
 export const PackagesSection = () => {
   return (
     <section className="relative py-20 bg-secondary scroll-mt-24 overflow-hidden" id="paquetes">
-      <div 
-        className="absolute inset-0 opacity-[0.15] pointer-events-none mix-blend-multiply" 
-        style={{ 
+      <GlassFilter />
+      <div
+        className="absolute inset-0 opacity-[0.15] pointer-events-none mix-blend-multiply"
+        style={{
           backgroundImage: 'url(/bg-world-map.png)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
@@ -97,9 +99,7 @@ export const PackagesSection = () => {
           {packages.map((pkg) => (
             <StaggerItem key={pkg.id}>
               <Link to={pkg.href} className="group block h-full">
-                <Card 
-                  className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 h-full hover:-translate-y-2"
-                >
+                <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 h-full hover:-translate-y-2">
                   <div className="relative aspect-square overflow-hidden">
                     <img
                       src={pkg.image}
@@ -107,16 +107,24 @@ export const PackagesSection = () => {
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       loading="lazy"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <h3 className="absolute bottom-4 left-4 font-display text-2xl font-bold text-white">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/20" />
+
+                    {/* Glass Button Overlay */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <GlassButton href={pkg.href}>
+                        <div className="text-white flex items-center gap-2">
+                          Ver paquetes
+                          <ArrowRight className="h-5 w-5" />
+                        </div>
+                      </GlassButton>
+                    </div>
+
+                    <h3 className="absolute bottom-4 left-4 font-display text-2xl font-bold text-white group-hover:-translate-y-16 transition-transform duration-300">
                       {pkg.title}
                     </h3>
                   </div>
                   <CardContent className="p-6">
-                    <p className="text-muted-foreground mb-4" dangerouslySetInnerHTML={{ __html: pkg.description }} />
-                    <span className="inline-flex items-center text-primary font-medium group-hover:gap-2 transition-all">
-                      Ver paquetes <ArrowRight className="ml-1 h-4 w-4" />
-                    </span>
+                    <p className="text-muted-foreground text-sm line-clamp-3" dangerouslySetInnerHTML={{ __html: pkg.description }} />
                   </CardContent>
                 </Card>
               </Link>

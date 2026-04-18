@@ -1,11 +1,14 @@
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { GlassButton, GlassFilter } from "@/components/ui/liquid-glass";
+import { PackageSearchBar } from "@/components/home/PackageSearchBar";
 
 export const HeroSection = () => {
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+      {/* Glass Filter SVG */}
+      <GlassFilter />
+
       {/* Background Video */}
       <motion.div
         className="absolute inset-0 overflow-hidden"
@@ -72,33 +75,35 @@ export const HeroSection = () => {
             Estados Unidos y destinos exóticos diseñados especialmente para vos.
           </motion.p>
           
-          <motion.div 
-            className="flex flex-col sm:flex-row gap-4 justify-center pt-4"
+          {/* Search Bar */}
+          <motion.div
+            className="w-full pt-2"
             variants={{
               hidden: { opacity: 0, y: 20 },
               visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] } },
             }}
           >
-            <Button 
-              asChild 
-              size="lg" 
-              className="text-lg px-8 py-6 bg-primary hover:bg-primary/90 transition-transform hover:scale-105"
-            >
-              <a href="#paquetes">
+            <PackageSearchBar />
+          </motion.div>
+
+          <motion.div
+            className="flex flex-col sm:flex-row gap-4 justify-center pt-2"
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] } },
+            }}
+          >
+            <GlassButton href="#paquetes">
+              <div className="text-white flex items-center gap-2">
                 Ver Paquetes
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </a>
-            </Button>
-            {/* <Button 
-              asChild 
-              variant="outline" 
-              size="lg" 
-              className="text-lg px-8 py-6 bg-white/10 border-white text-white hover:bg-white hover:text-primary transition-transform hover:scale-105"
-            >
-              <Link to="/contacto">
+                <ArrowRight className="h-5 w-5" />
+              </div>
+            </GlassButton>
+            <GlassButton href="https://wa.me/5491124943224?text=Hola!%20Quiero%20consultar%20por%20un%20viaje">
+              <div className="text-white">
                 Consultá tu Viaje
-              </Link>
-            </Button> */}
+              </div>
+            </GlassButton>
           </motion.div>
         </motion.div>
       </div>
