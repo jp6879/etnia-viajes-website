@@ -110,6 +110,7 @@ function transformMultiPackage(pkg: any): MultidestinationData {
     services: pkg.services || [],
     legalText: pkg.legal_text || undefined,
     paymentMethods: pkg.payment_methods || undefined,
+    itineraryDetails: pkg.itinerary_details || undefined,
   };
 }
 

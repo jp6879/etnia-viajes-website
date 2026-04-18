@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MapPin, Hotel, Plane, Users, Bus, Moon, CreditCard, Briefcase, Backpack, Luggage } from "lucide-react";
+import { MapPin, Hotel, Plane, Users, Bus, Moon, CreditCard, Briefcase, Backpack, Luggage, BookOpen } from "lucide-react";
 import { HotelGallery } from "./HotelGallery";
 import { MiniDestinationGallery } from "./MiniDestinationGallery";
 import { CONTACT, WHATSAPP_MESSAGES } from "@/config/contact";
@@ -70,6 +70,8 @@ export interface MultidestinationData {
   legalText?: string;
   /** Medios de pago aceptados */
   paymentMethods?: string;
+  /** Detalles del itinerario día a día */
+  itineraryDetails?: string;
 }
 
 interface MultidestinationCardProps {
@@ -426,6 +428,21 @@ export function MultidestinationCard({
                 ))}
               </ul>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Itinerary Details */}
+      {paquete.itineraryDetails && (
+        <div className="p-4 md:p-6 border-t border-border">
+          <div className="flex items-start gap-3 mb-3">
+            <div className="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+              <BookOpen className="h-5 w-5 text-primary" />
+            </div>
+            <h4 className="font-semibold text-foreground text-lg self-center">Detalles del Itinerario</h4>
+          </div>
+          <div className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line pl-1">
+            {paquete.itineraryDetails}
           </div>
         </div>
       )}
