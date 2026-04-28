@@ -169,6 +169,14 @@ export const Footer = () => {
           <p className="mt-2">
             Agencia de Viajes y Turismo | Legajo RNAV N° 20308
           </p>
+          <p className="mt-2">
+            <Link
+              to="/politica-de-privacidad"
+              className="hover:text-primary-foreground transition-colors underline underline-offset-2"
+            >
+              Política de Privacidad
+            </Link>
+          </p>
         </div>
       </div>
     </footer>

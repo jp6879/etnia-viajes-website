@@ -22,6 +22,7 @@ import LunasDeMiel from "./pages/paquetes/LunasDeMiel";
 
 // Dynamic destination page (loads from Supabase)
 import DestinationPage from "./pages/paquetes/DestinationPage";
+import PoliticaPrivacidad from "./pages/PoliticaPrivacidad";
 
 // Template demo for testing
 import TemplateDemo from "./pages/paquetes/TemplateDemo";
@@ -57,6 +58,8 @@ const App = () => (
           {/* Dynamic destination page - handles ALL destinations from Supabase */}
           <Route path="/paquetes/:regionSlug/:destinationSlug" element={<DestinationPage />} />
           
+          <Route path="/politica-de-privacidad" element={<PoliticaPrivacidad />} />
+
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
